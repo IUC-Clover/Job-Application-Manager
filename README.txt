@@ -8,6 +8,6 @@ This project is a job application management system. It allows job seekers to ap
 - Notifications  
 
 ## Tech Stack  
-- Frontend: React  
-- Backend: Node.js + Express  
-- Database: MongoDB  
+- Frontend: CSS , HTML
+- Backend: Python
+- Database: SQL

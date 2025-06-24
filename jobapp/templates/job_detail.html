@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ job.title }} - {{ job.company }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 700px;">
+    <a href="/" class="btn btn-link mb-3">&larr; Back to Listings</a>
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title">{{ job.title }}</h2>
+            <h5 class="card-subtitle mb-2 text-muted">{{ job.company }} - {{ job.location }}</h5>
+            <p class="card-text mt-3">{{ job.description }}</p>
+            <ul class="list-group list-group-flush mb-3">
+                <li class="list-group-item"><strong>Category:</strong> {{ job.category }}</li>
+                <li class="list-group-item"><strong>Experience Level:</strong> {{ job.experience_level }}</li>
+                <li class="list-group-item"><strong>Salary:</strong> {{ job.salary|default:'Not specified' }}</li>
+                <li class="list-group-item"><strong>Status:</strong> {{ job.get_status_display }}</li>
+                <li class="list-group-item"><strong>Posted:</strong> {{ job.created_at|date:"d M Y" }}</li>
+            </ul>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% if user.is_authenticated and user.role == 'job_seeker' %}
+                {% if application_exists %}
+                    <div class="alert alert-info">You have already applied for this job.</div>
+                {% else %}
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">Apply for this Job</button>
+                    </form>
+                {% endif %}
+            {% elif not user.is_authenticated %}
+                <div class="alert alert-warning mt-3">Please <a href="{% url 'login' %}">login</a> as a job seeker to apply.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

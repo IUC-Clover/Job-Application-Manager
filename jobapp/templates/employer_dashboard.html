@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load get_item %}
+
+{% block title %}Employer Dashboard - JobApp{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Welcome, {{ user.username }}!</h2>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Quick Actions</h4>
+            <div class="row">
+                <div class="col-md-3">
+                    <a href="{% url 'job-create' %}" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-plus-circle"></i> Post New Job
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'search-candidates' %}" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-search"></i> Search Candidates
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'profile' %}" class="btn btn-info w-100 mb-2">
+                        <i class="bi bi-gear"></i> Manage Profile
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'notifications' %}" class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-bell"></i> Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Overview -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Application Status Distribution</h4>
+            <div class="row">
+                {% for stat in status_dist %}
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ stat.count }}</h5>
+                                <p class="card-text">{{ stat.applications__status|title|default:'Unknown' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-md-12">
+                        <div class="alert alert-info">No applications yet.</div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Listings Management -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>Your Job Listings</h4>
+                <a href="{% url 'job-create' %}" class="btn btn-primary">Post New Job</a>
+            </div>
+            {% if jobs %}
+                {% for job in jobs %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5 class="card-title">{{ job.title }}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">{{ job.company }} - {{ job.location }}</h6>
+                                    <p class="card-text">{{ job.description|truncatewords:20 }}</p>
+                                    <div class="mb-2">
+                                        <span class="badge bg-primary">{{ job.applications.count }} Applications</span>
+                                        <span class="badge bg-secondary">{{ job.get_status_display }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="btn-group-vertical w-100">
+                                        <button class="btn btn-outline-primary btn-sm mb-1" type="button" data-bs-toggle="collapse" data-bs-target="#apps-{{ job.id }}">
+                                            View Applications ({{ job.applications.count }})
+                                        </button>
+                                        <a href="{% url 'job-edit' job.id %}" class="btn btn-outline-success btn-sm mb-1">Edit Job</a>
+                                        <form action="{% url 'job-delete' job.id %}" method="post" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete Job</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Applications Collapse -->
+                            <div class="collapse mt-3" id="apps-{{ job.id }}">
+                                <div class="card card-body">
+                                    <h6>Applications for this job:</h6>
+                                    {% if job_applications|get_item:job.id %}
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Applicant</th>
+                                                        <th>Status</th>
+                                                        <th>Applied Date</th>
+                                                        <th>Interview Date</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for app in job_applications|get_item:job.id %}
+                                                    <tr>
+                                                        <td>{{ app.applicant.first_name }} {{ app.applicant.last_name }}</td>
+                                                        <td>
+                                                            <select class="form-select form-select-sm" onchange="updateApplicationStatus({{ app.id }}, this.value)">
+                                                                <option value="pending" {% if app.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                                <option value="interview_scheduled" {% if app.status == 'interview_scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                                                                <option value="hired" {% if app.status == 'hired' %}selected{% endif %}>Hired</option>
+                                                                <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                                            </select>
+                                                        </td>
+                                                        <td>{{ app.submitted_at|date:"d M Y H:i" }}</td>
+                                                        <td>
+                                                            {% if app.status == 'interview_scheduled' and app.interview_date %}
+                                                                {{ app.interview_date|date:'d M Y H:i' }}
+                                                            {% else %}
+                                                                -
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <a href="{% url 'applicant-profile' app.applicant.id %}" class="btn btn-sm btn-outline-primary">View Profile</a>
+                                                            <a href="#" onclick="openScheduleModal({{ app.id }}); return false;" class="btn btn-sm btn-outline-success">Schedule Interview</a>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted">No applications yet for this job.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    You have not posted any jobs yet. <a href="#" class="alert-link">Post your first job</a> to start receiving applications!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Interview Modal -->
+<div class="modal fade" id="scheduleModal" tabindex="-1" aria-labelledby="scheduleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="scheduleModalLabel">Schedule Interview</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="datetime-local" id="interviewDate" class="form-control">
+        <input type="hidden" id="modalAppId">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" onclick="submitScheduleInterview()">Schedule</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function updateApplicationStatus(applicationId, status) {
+    fetch("{% url 'update-application-status' %}", {
+        method: "POST",
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Accept': 'application/json',
+        },
+        body: new URLSearchParams({
+            application_id: applicationId,
+            status: status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            alert('Status updated!');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+function openScheduleModal(appId) {
+    document.getElementById('modalAppId').value = appId;
+    document.getElementById('interviewDate').value = '';
+    var modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+    modal.show();
+}
+
+function submitScheduleInterview() {
+    var appId = document.getElementById('modalAppId').value;
+    var date = document.getElementById('interviewDate').value;
+    fetch("{% url 'schedule-interview' 0 %}".replace('0', appId), {
+        method: "POST",
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({interview_date: date})
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if(data.success) window.location.reload();
+    });
+}
+</script>
+{% endblock %} 

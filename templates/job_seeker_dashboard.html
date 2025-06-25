@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Seeker Dashboard - JobApp{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="mb-4">Welcome, {{ user.username }}!</h2>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Application Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Application Overview</h4>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-center bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ application_stats.pending }}</h5>
+                            <p class="card-text">Pending</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ application_stats.interview_scheduled }}</h5>
+                            <p class="card-text">Interview Scheduled</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ application_stats.hired }}</h5>
+                            <p class="card-text">Hired</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center bg-danger text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ application_stats.rejected }}</h5>
+                            <p class="card-text">Rejected</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h4>Quick Actions</h4>
+            <div class="row">
+                <div class="col-md-4">
+                    <a href="{% url 'index' %}" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-search"></i> Search Jobs
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'profile' %}" class="btn btn-success w-100 mb-2">
+                        <i class="bi bi-person"></i> Update Profile
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'profile' %}" class="btn btn-info w-100 mb-2">
+                        <i class="bi bi-file-earmark"></i> Upload Resume
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{% url 'notifications' %}" class="btn btn-warning w-100 mb-2">
+                        <i class="bi bi-bell"></i> Notifications
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="row">
+        <div class="col-md-12">
+            <h4>Recent Applications</h4>
+            {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Job Title</th>
+                                <th>Company</th>
+                                <th>Status</th>
+                                <th>Applied Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for application in applications %}
+                            <tr>
+                                <td>{{ application.job.title }}</td>
+                                <td>{{ application.job.company }}</td>
+                                <td>
+                                    {% if application.status == 'pending' %}
+                                        <span class="badge bg-primary">Pending</span>
+                                    {% elif application.status == 'interview_scheduled' %}
+                                        <span class="badge bg-warning">Interview Scheduled</span>
+                                    {% elif application.status == 'hired' %}
+                                        <span class="badge bg-success">Hired</span>
+                                    {% elif application.status == 'rejected' %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ application.submitted_at|date:"d M Y" }}</td>
+                                <td>
+                                    <a href="{% url 'job-detail' application.job.id %}" class="btn btn-sm btn-outline-primary">View Job</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    You haven't applied to any jobs yet. <a href="{% url 'index' %}">Start searching for jobs</a> to apply!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

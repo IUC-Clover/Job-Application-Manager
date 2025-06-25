@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Listings - JobApp{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">Find Your Next Job</h1>
+            <p class="col-md-8 fs-4">Browse our open positions and find the perfect role for you.</p>
+        </div>
+    </div>
+
+    <!-- Filtreleme Formu -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-3">
+            <select name="category" class="form-select">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                    <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="location" class="form-select">
+                <option value="">All Locations</option>
+                {% for loc in locations %}
+                    <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="experience_level" class="form-select">
+                <option value="">All Experience Levels</option>
+                {% for exp in experience_levels %}
+                    <option value="{{ exp }}" {% if selected_experience_level == exp %}selected{% endif %}>{{ exp }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Filter</button>
+        </div>
+    </form>
+
+    <h2 class="mt-5 mb-4">Open Positions</h2>
+    <div id="job-listings" class="row">
+        {% for job in jobs %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ job.title }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ job.company }} - {{ job.location }}</h6>
+                    <p class="card-text">{{ job.description|truncatewords:20 }}</p>
+                    <a href="{% url 'job-detail' job.id %}" class="btn btn-primary mt-auto">View Details & Apply</a>
+                </div>
+                <div class="card-footer text-muted">
+                    Posted on {{ job.created_at|date:"d M Y" }}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col">
+            <p>There are currently no open positions. Please check back later.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

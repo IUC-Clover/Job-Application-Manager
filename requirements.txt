@@ -1,0 +1,7 @@
+django
+djangorestframework
+djangorestframework-simplejwt 
+pytest
+pytest-django
+pytest-cov 
+django-cors-headers
